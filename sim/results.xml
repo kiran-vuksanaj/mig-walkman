@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1717691579" />
+    <testcase name="test_a" classname="wav_tb" file="/home/kiranv/Documents/fpga/new_labs/uart_audio/sim/wav_tb.py" lineno="40" time="8.8632972240448" sim_time_ns="1109650.001" ratio_time="125196.07240403554" />
+  </testsuite>
+</testsuites>
