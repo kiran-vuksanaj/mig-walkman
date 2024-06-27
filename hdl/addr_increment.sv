@@ -31,7 +31,7 @@ module addr_increment
 	 next_addr <= RST_ADDR + INCR_AMT;
 	 rollover_out <= 0;
       end else if (incr_in) begin
-	 next_addr <= (next_addr+INCR_AMT >= ROLLOVER) ? 0 : next_addr+INCR_AMT;
+	 next_addr <= (next_addr+INCR_AMT >= ROLLOVER) ? RST_ADDR : next_addr+INCR_AMT;
 	 rollover_out <= next_addr+INCR_AMT >= ROLLOVER || next_addr+INCR_AMT==0;
       end else begin
 	 rollover_out <= 0;
