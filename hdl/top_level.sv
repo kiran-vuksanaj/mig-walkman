@@ -36,7 +36,7 @@ module top_level
    localparam CLOCK_SPEED = 100_000_000;
    
    localparam SAMPLE_RATE = 12_000;
-   localparam STORAGE_SECONDS = 5;
+   localparam STORAGE_SECONDS = 60;
    localparam AUDIO_BRAM_DEPTH = SAMPLE_RATE*STORAGE_SECONDS;
    localparam AUDIO_BRAM_ADDR = $clog2(AUDIO_BRAM_DEPTH);
    
@@ -208,18 +208,18 @@ module top_level
    logic 	       small_pile;
    
    ddr_fifo sample_write_fifo
-     (.s_axis_aresetn(~sys_rst),
-      .s_axis_aclk(sys_clk),
-      .s_axis_tvalid(phrase_valid),
-      .s_axis_tready(phrase_ready),
-      .s_axis_tdata(phrase_axis),
-      .s_axis_tuser(phrase_tuser),
-      .m_axis_aclk(ui_clk),
-      .m_axis_tvalid(write_axis_valid),
-      .m_axis_tready(write_axis_ready), // ready will spit you data! use in proper state
-      .m_axis_tdata(write_axis_phrase),
-      .m_axis_tuser(write_axis_tuser),
-      .prog_empty(small_pile));
+     (.sender_rst(sys_rst),
+      .sender_clk(sys_clk),
+      .sender_axis_tvalid(phrase_valid),
+      .sender_axis_tready(phrase_ready),
+      .sender_axis_tdata(phrase_axis),
+      .sender_axis_tuser(phrase_tuser),
+      .receiver_clk(ui_clk),
+      .receiver_axis_tvalid(write_axis_valid),
+      .receiver_axis_tready(write_axis_ready), // ready will spit you data! use in proper state
+      .receiver_axis_tdata(write_axis_phrase),
+      .receiver_axis_tuser(write_axis_tuser),
+      .receiver_axis_prog_empty(small_pile));
 
    logic [127:0] read_axis_data;
    logic 	 read_axis_valid;
@@ -229,7 +229,7 @@ module top_level
 
    logic [2:0] 	 tg_state;
 
-   traffic_generator tg
+   rw_looper #(.MAX_ADDRESS(SAMPLE_RATE*STORAGE_SECONDS >> 4)) tg
      (.clk_in(ui_clk),
       .rst_in(sys_rst_ui),
       .app_addr(app_addr),
@@ -253,14 +253,14 @@ module top_level
       .write_axis_data(write_axis_phrase),
       .write_axis_valid(write_axis_valid),
       .write_axis_ready(write_axis_ready),
-      .write_axis_smallpile(small_pile),
+      // .write_axis_smallpile(small_pile),
       .write_axis_tuser(write_axis_tuser),
       .read_axis_data(read_axis_data),
       .read_axis_valid(read_axis_valid),
-      .read_axis_af(read_axis_af),
+      // .read_axis_af(read_axis_af),
       .read_axis_ready(read_axis_ready),
-      .read_axis_tuser(read_axis_tuser),
-      .state_out(tg_state)
+      .read_axis_tuser(read_axis_tuser)
+      // .state_out(tg_state)
       );
 
    logic 	 outphrase_axis_valid;
@@ -269,18 +269,18 @@ module top_level
    logic 	 outphrase_axis_tuser;
 
    ddr_fifo playback_read
-     (.s_axis_aresetn(~sys_rst_ui),
-      .s_axis_aclk(ui_clk),
-      .s_axis_tvalid(read_axis_valid),
-      .s_axis_tready(read_axis_ready),
-      .s_axis_tdata(read_axis_data),
-      .s_axis_tuser(read_axis_tuser),
-      .prog_full(read_axis_af),
-      .m_axis_aclk(sys_clk),
-      .m_axis_tvalid(outphrase_axis_valid),
-      .m_axis_tready(outphrase_axis_ready),
-      .m_axis_tdata(outphrase_axis_data),
-      .m_axis_tuser(outphrase_axis_tuser));
+     (.sender_rst(sys_rst_ui),
+      .sender_clk(ui_clk),
+      .sender_axis_tvalid(read_axis_valid),
+      .sender_axis_tready(read_axis_ready),
+      .sender_axis_tdata(read_axis_data),
+      .sender_axis_tuser(read_axis_tuser),
+      .sender_axis_prog_full(read_axis_af),
+      .receiver_clk(sys_clk),
+      .receiver_axis_tvalid(outphrase_axis_valid),
+      .receiver_axis_tready(outphrase_axis_ready),
+      .receiver_axis_tdata(outphrase_axis_data),
+      .receiver_axis_tuser(outphrase_axis_tuser));
 
    logic [7:0] 	 playback_sample;
    logic 	 playback_sample_ready;
